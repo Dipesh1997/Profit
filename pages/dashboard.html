@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Inventory Management</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="content">
+        
+        <div class="sticky-container">
+            <div class="profit-panel">
+                <h2>Profit Analysis</h2>
+                <div class="profit-tabs">
+                    <button class="tab-btn active" data-period="daily">Daily</button>
+                    <button class="tab-btn" data-period="weekly">Weekly</button>
+                    <button class="tab-btn" data-period="monthly">Monthly</button>
+                    <button class="tab-btn" data-period="yearly">Yearly</button>
+                </div>
+                <div class="profit-content">
+                    <div class="profit-card">
+                        <div class="profit-info">
+                            <h3>Total Profit</h3>
+                            <p id="totalProfit">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="profit-card">
+                        <div class="profit-info">
+                            <h3>Total Sales</h3>
+                            <p id="totalSales">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="profit-card">
+                        <div class="profit-info">
+                            <h3>Total Cost</h3>
+                            <p id="totalCost">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Items</h3>
+                        <p id="totalItems">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Customers</h3>
+                        <p id="totalCustomers">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Invoices</h3>
+                        <p id="totalInvoices">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="recent-activity">
+            <h2>Recent Activity</h2>
+            <div id="activityList" class="activity-list">
+                <!-- Activity items will be added here -->
+            </div>
+        </div>
+    </div>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/nav.js"></script>
+</body>
+</html>
