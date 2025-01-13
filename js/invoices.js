@@ -11,8 +11,10 @@ class InvoiceManager {
         this.addItemButton = document.getElementById('addItemToInvoice');
         this.invoiceSubtotal = document.getElementById('invoiceSubtotal');
         this.invoiceTax = document.getElementById('invoiceTax');
+        this.invoiceDiscount = document.getElementById('invoiceDiscount');
         this.invoiceTotal = document.getElementById('invoiceTotal');
         this.taxRate = document.getElementById('taxRate');
+        this.discountAmount = document.getElementById('discountAmount');
         this.taxLabel = document.getElementById('taxLabel');
         this.modalTitle = document.getElementById('modalTitle');
         this.submitButton = document.getElementById('submitButton');
@@ -64,9 +66,13 @@ class InvoiceManager {
         // Add item to invoice
         this.addItemButton.addEventListener('click', this.handleAddItem);
 
-        // Tax rate change
+        // Tax rate and discount changes
         this.taxRate.addEventListener('input', () => {
             this.updateTaxLabel();
+            this.updateTotals();
+        });
+
+        this.discountAmount.addEventListener('input', () => {
             this.updateTotals();
         });
 
@@ -95,6 +101,7 @@ class InvoiceManager {
             this.editInvoiceId.value = invoice.id;
             this.customerSelect.value = invoice.customerId;
             this.taxRate.value = invoice.taxRate || 0;
+            this.discountAmount.value = invoice.discountAmount || 0;
             
             // Load invoice items
             this.invoiceItems.innerHTML = '';
@@ -148,7 +155,9 @@ class InvoiceManager {
                 </select>
                 <span class="item-code"></span>
             </div>
-            <div class="item-price">₹0.00</div>
+            <div class="item-price-group">
+                <input type="number" class="item-selling-price" min="0" step="0.01" value="${existingItem ? existingItem.price : '0.00'}" required>
+            </div>
             <input type="number" class="item-quantity" min="1" value="${existingItem ? existingItem.quantity : 1}" required>
             <div class="item-total">₹0.00</div>
             <button type="button" class="remove-item">×</button>
@@ -159,15 +168,15 @@ class InvoiceManager {
         // Add event listeners
         const select = itemRow.querySelector('.item-select');
         const quantity = itemRow.querySelector('.item-quantity');
+        const sellingPrice = itemRow.querySelector('.item-selling-price');
         const removeBtn = itemRow.querySelector('.remove-item');
         const codeSpan = itemRow.querySelector('.item-code');
-        const priceDiv = itemRow.querySelector('.item-price');
 
         if (existingItem) {
             const item = this.inventory.find(i => i.id === existingItem.id);
             if (item) {
                 codeSpan.textContent = item.code || '';
-                priceDiv.textContent = `₹${item.sellingPrice.toFixed(2)}`;
+                sellingPrice.value = existingItem.price.toFixed(2);
             }
         }
 
@@ -177,16 +186,17 @@ class InvoiceManager {
                 const item = this.inventory.find(i => i.id === Number(selectedOption.value));
                 if (item) {
                     codeSpan.textContent = item.code || '';
-                    priceDiv.textContent = `₹${item.sellingPrice.toFixed(2)}`;
+                    sellingPrice.value = item.sellingPrice.toFixed(2);
                 }
             } else {
                 codeSpan.textContent = '';
-                priceDiv.textContent = '₹0.00';
+                sellingPrice.value = '0.00';
             }
             this.updateItemTotal(itemRow);
         });
 
         quantity.addEventListener('input', () => this.updateItemTotal(itemRow));
+        sellingPrice.addEventListener('input', () => this.updateItemTotal(itemRow));
         removeBtn.addEventListener('click', () => {
             itemRow.remove();
             this.updateTotals();
@@ -198,11 +208,12 @@ class InvoiceManager {
     updateItemTotal(row) {
         const select = row.querySelector('.item-select');
         const quantity = row.querySelector('.item-quantity');
+        const sellingPrice = row.querySelector('.item-selling-price');
         const totalDiv = row.querySelector('.item-total');
         
         const selectedOption = select.options[select.selectedIndex];
         if (selectedOption.value) {
-            const price = parseFloat(selectedOption.dataset.price);
+            const price = parseFloat(sellingPrice.value) || 0;
             const qty = parseInt(quantity.value) || 0;
             totalDiv.textContent = `₹${(price * qty).toFixed(2)}`;
         } else {
@@ -214,24 +225,36 @@ class InvoiceManager {
 
     updateTotals() {
         let subtotal = 0;
+        let totalCostPrice = 0;
+        
         this.invoiceItems.querySelectorAll('.invoice-item-row').forEach(row => {
             const select = row.querySelector('.item-select');
             const quantity = row.querySelector('.item-quantity');
+            const sellingPrice = row.querySelector('.item-selling-price');
             
             const selectedOption = select.options[select.selectedIndex];
             if (selectedOption.value) {
-                const price = parseFloat(selectedOption.dataset.price);
+                const price = parseFloat(sellingPrice.value) || 0;
                 const qty = parseInt(quantity.value) || 0;
+                const item = this.inventory.find(i => i.id === Number(selectedOption.value));
+                const costPrice = item ? item.costPrice : 0;
+                
                 subtotal += price * qty;
+                totalCostPrice += costPrice * qty;
             }
         });
 
         const taxRate = parseFloat(this.taxRate.value) || 0;
-        const tax = subtotal * (taxRate / 100);
-        const total = subtotal + tax;
+        const discountAmount = parseFloat(this.discountAmount.value) || 0;
+        
+        // Calculate tax after applying discount
+        const discountedSubtotal = subtotal - discountAmount;
+        const tax = discountedSubtotal * (taxRate / 100);
+        const total = discountedSubtotal + tax;
 
         this.invoiceSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
         this.invoiceTax.textContent = `₹${tax.toFixed(2)}`;
+        this.invoiceDiscount.textContent = `₹${discountAmount.toFixed(2)}`;
         this.invoiceTotal.textContent = `₹${total.toFixed(2)}`;
     }
 
@@ -246,24 +269,32 @@ class InvoiceManager {
 
         const items = [];
         let isValid = true;
+        let totalCostPrice = 0;
 
         this.invoiceItems.querySelectorAll('.invoice-item-row').forEach(row => {
             const select = row.querySelector('.item-select');
             const quantity = row.querySelector('.item-quantity');
+            const sellingPrice = row.querySelector('.item-selling-price');
             
-            if (!select.value || !quantity.value) {
+            if (!select.value || !quantity.value || !sellingPrice.value) {
                 isValid = false;
                 return;
             }
 
             const item = this.inventory.find(i => i.id === Number(select.value));
+            const price = parseFloat(sellingPrice.value);
+            const qty = parseInt(quantity.value);
+            
+            totalCostPrice += item.costPrice * qty;
+            
             items.push({
                 id: item.id,
                 name: item.name,
                 code: item.code,
-                price: item.sellingPrice,
-                quantity: parseInt(quantity.value),
-                total: item.sellingPrice * parseInt(quantity.value)
+                price: price,
+                costPrice: item.costPrice,
+                quantity: qty,
+                total: price * qty
             });
         });
 
@@ -274,8 +305,15 @@ class InvoiceManager {
 
         const subtotal = items.reduce((sum, item) => sum + item.total, 0);
         const taxRate = parseFloat(this.taxRate.value) || 0;
-        const tax = subtotal * (taxRate / 100);
-        const total = subtotal + tax;
+        const discountAmount = parseFloat(this.discountAmount.value) || 0;
+        
+        // Calculate tax after applying discount
+        const discountedSubtotal = subtotal - discountAmount;
+        const tax = discountedSubtotal * (taxRate / 100);
+        const total = discountedSubtotal + tax;
+        
+        // Calculate profit after discount
+        const profit = total - totalCostPrice;
 
         const invoiceData = {
             customerId: Number(customerId),
@@ -284,7 +322,10 @@ class InvoiceManager {
             subtotal,
             taxRate,
             tax,
+            discountAmount,
             total,
+            totalCostPrice,
+            profit,
             date: new Date().toISOString()
         };
 
@@ -395,6 +436,10 @@ class InvoiceManager {
                     <div class="summary-row">
                         <span>Subtotal:</span>
                         <span>₹${invoice.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Discount:</span>
+                        <span>₹${invoice.discountAmount.toFixed(2)}</span>
                     </div>
                     <div class="summary-row">
                         <span>Tax (${invoice.taxRate || 0}%):</span>

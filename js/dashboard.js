@@ -123,8 +123,9 @@ class ProfitManager {
         const inventory = JSON.parse(localStorage.getItem('inventory')) || [];
         const { start, end } = this.getDateRange();
         
-        let totalSales = 0;
+        let grossSales = 0;
         let totalCost = 0;
+        let totalDiscounts = 0;
         
         const filteredInvoices = invoices.filter(invoice => {
             const invoiceDate = new Date(invoice.date);
@@ -132,20 +133,29 @@ class ProfitManager {
         });
 
         filteredInvoices.forEach(invoice => {
+            // Add up item sales and costs
             invoice.items.forEach(item => {
-                // Get the inventory item to access the cost price
                 const inventoryItem = inventory.find(invItem => invItem.id === item.id);
                 if (inventoryItem) {
-                    totalSales += item.quantity * item.price; // Use item.price which is the selling price
+                    grossSales += item.quantity * item.price;
                     totalCost += item.quantity * inventoryItem.costPrice;
                 }
             });
+            
+            // Add up discounts
+            if (invoice.discountAmount) {
+                totalDiscounts += invoice.discountAmount;
+            }
         });
 
-        const totalProfit = totalSales - totalCost;
+        // Calculate net sales and profit after deducting discounts
+        const netSales = grossSales - totalDiscounts;
+        const totalProfit = netSales - totalCost;
         
         return {
-            totalSales,
+            grossSales,
+            totalDiscounts,
+            netSales,
             totalCost,
             totalProfit
         };
@@ -156,9 +166,10 @@ class ProfitManager {
     }
 
     updateProfitStats() {
-        const { totalSales, totalCost, totalProfit } = this.calculateProfits();
+        const { grossSales, totalDiscounts, netSales, totalCost, totalProfit } = this.calculateProfits();
         
-        document.getElementById('totalSales').textContent = this.formatCurrency(totalSales);
+        // Display net sales (after discounts) as total sales
+        document.getElementById('totalSales').textContent = this.formatCurrency(netSales);
         document.getElementById('totalCost').textContent = this.formatCurrency(totalCost);
         document.getElementById('totalProfit').textContent = this.formatCurrency(totalProfit);
 
