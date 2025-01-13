@@ -378,43 +378,49 @@ body {
 
 .invoice-item-row {
     display: grid;
-    grid-template-columns: 2fr auto auto auto auto;
-    gap: 15px;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 1rem;
     align-items: center;
-    padding: 10px;
-    background: var(--card-bg);
-    border-radius: 8px;
-    margin-bottom: 10px;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .item-select-group {
     display: flex;
+    flex-direction: column;
+}
+
+.item-price-group {
+    display: flex;
     align-items: center;
-    gap: 10px;
+    position: relative;
 }
 
-.item-select {
-    flex: 1;
-}
-
-.item-code {
-    font-size: 0.9em;
+.item-price-group::before {
+    content: "₹";
+    position: absolute;
+    left: 0.5rem;
     color: #666;
-    padding: 2px 6px;
-    background: #f0f0f0;
+}
+
+.item-selling-price {
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 1rem;
 }
 
 .item-quantity {
-    width: 80px;
-    padding: 4px;
+    padding: 0.5rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
 }
 
-.item-price, .item-total {
+.item-total {
     font-family: monospace;
-    min-width: 80px;
     text-align: right;
 }
 
@@ -422,31 +428,64 @@ body {
     background: none;
     border: none;
     color: var(--danger-color);
-    font-size: 20px;
+    font-size: 1.2rem;
     cursor: pointer;
-    padding: 0 8px;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-item:hover {
+    background-color: rgba(var(--danger-color-rgb), 0.1);
+    border-radius: 4px;
 }
 
 .invoice-summary {
-    background: var(--card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
 }
 
-.summary-row {
+.tax-rate-input {
+    margin-bottom: 1rem;
     display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    font-size: 1.1em;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.summary-row.total {
-    border-top: 2px solid var(--border-color);
-    margin-top: 10px;
-    padding-top: 10px;
-    font-weight: bold;
-    font-size: 1.2em;
+.tax-rate-input input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.invoice-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.edit-btn {
+    color: var(--primary-color);
+}
+
+.delete-btn {
+    color: var(--danger-color);
 }
 
 /* Existing Invoice List Styles */
@@ -496,53 +535,6 @@ body {
 .item-details {
     font-family: monospace;
     color: #666;
-}
-
-.tax-rate-input {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: #f8f8f8;
-    border-radius: 4px;
-}
-
-.tax-rate-input label {
-    display: block;
-    margin-bottom: 5px;
-    color: #666;
-}
-
-.tax-rate-input input {
-    width: 100px;
-    padding: 4px 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.invoice-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.action-btn {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.action-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.edit-btn {
-    color: var(--primary-color);
-}
-
-.delete-btn {
-    color: var(--danger-color);
 }
 
 /* Profit Panel Styles */
