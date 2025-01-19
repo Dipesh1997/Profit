@@ -6,6 +6,54 @@
     <title>Invoices - Inventory Management</title>
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ... existing styles ... */
+
+        /* Return Modal Styles */
+        .return-items {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .return-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .return-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .return-quantity input {
+            width: 80px;
+            padding: 5px;
+        }
+
+        .return-quantity span {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Alert Message Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+    </style>
 </head>
 <body>
     <div class="content">
@@ -24,6 +72,12 @@
             <div class="modal-header">
                 <h2 id="modalTitle">Create New Invoice</h2>
                 <span class="close-modal">&times;</span>
+            </div>
+            <div class="form-voice-control">
+                <button type="button" id="formMicButton" class="mic-button">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice Command</span>
+                </button>
             </div>
             <form id="addInvoiceForm">
                 <input type="hidden" id="editInvoiceId">
@@ -74,6 +128,11 @@
     <button id="addButton" class="fab">
         <i class="fas fa-plus"></i>
     </button>
+
+    <!-- Add return modal container -->
+    <div id="returnItemModal" class="modal">
+        <!-- Modal content will be dynamically inserted -->
+    </div>
 
     <script src="../js/invoices.js"></script>
     <script src="../js/nav.js"></script>

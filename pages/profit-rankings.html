@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit Rankings - Business Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* General Layout */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            padding-bottom: 60px; /* Space for bottom nav */
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        .nav-item.active {
+            color: #007bff;
+        }
+
+        .nav-item i {
+            font-size: 1.2em;
+            margin-bottom: 4px;
+        }
+
+        .nav-item span {
+            font-size: 0.8em;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        /* Rankings List Styles */
+        .rankings-list {
+            padding: 20px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .rank {
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 40px;
+        }
+        
+        .customer-info {
+            flex-grow: 1;
+            padding: 0 20px;
+        }
+        
+        .customer-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .customer-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .profit-amount {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.1em;
+        }
+        
+        .top-3 {
+            border-left: 4px solid #ffd700;
+        }
+
+        /* Mic Button Styles */
+        .mic-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .mic-button.listening {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <!-- Your existing navigation -->
+        </nav>
+        
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Customer Profit Rankings</h1>
+                <div class="header-actions">
+                    <input type="text" id="rankingSearch" placeholder="Search customers..." class="search-input">
+                </div>
+            </header>
+            
+            <div class="rankings-list" id="rankingsList">
+                <!-- Rankings will be populated by JavaScript -->
+            </div>
+        </main>
+    </div>
+    
+    <script src="../js/nav.js"></script>
+    <script src="../js/profit-rankings.js"></script>
+</body>
+</html> 

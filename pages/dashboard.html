@@ -9,39 +9,10 @@
 </head>
 <body>
     <div class="content">
-        
-        <div class="sticky-container">
-            <div class="profit-panel">
-                <h2>Profit Analysis</h2>
-                <div class="profit-tabs">
-                    <button class="tab-btn active" data-period="daily">Daily</button>
-                    <button class="tab-btn" data-period="weekly">Weekly</button>
-                    <button class="tab-btn" data-period="monthly">Monthly</button>
-                    <button class="tab-btn" data-period="yearly">Yearly</button>
-                </div>
-                <div class="profit-content">
-                    <div class="profit-card">
-                        <div class="profit-info">
-                            <h3>Total Profit</h3>
-                            <p id="totalProfit">₹0.00</p>
-                        </div>
-                    </div>
-                    <div class="profit-card">
-                        <div class="profit-info">
-                            <h3>Total Sales</h3>
-                            <p id="totalSales">₹0.00</p>
-                        </div>
-                    </div>
-                    <div class="profit-card">
-                        <div class="profit-info">
-                            <h3>Total Cost</h3>
-                            <p id="totalCost">₹0.00</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="dashboard-stats">
-                <div class="stat-card">
+        <h1>Dashboard</h1>
+        <div class="stats-container">
+            <div class="stats-row">
+                <div class="stat-card" data-type="inventory">
                     <div class="stat-icon">
                         <i class="fas fa-box"></i>
                     </div>
@@ -50,7 +21,7 @@
                         <p id="totalItems">0</p>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-type="customers">
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
                     </div>
@@ -59,7 +30,7 @@
                         <p id="totalCustomers">0</p>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-type="invoices">
                     <div class="stat-icon">
                         <i class="fas fa-file-invoice"></i>
                     </div>
@@ -70,15 +41,30 @@
                 </div>
             </div>
         </div>
-        <div class="recent-activity">
-            <div class="activity-header">
-                <h2>Recent Activity</h2>
-                <a href="recent-activities.html" class="view-all-btn">
-                    <i class="fas fa-external-link-alt"></i> View All
-                </a>
+
+        <div class="profit-section">
+            <div class="profit-header">
+                <h2>Profit Overview</h2>
+                <div class="profit-tabs">
+                    <button class="tab-btn active" data-period="daily">Daily</button>
+                    <button class="tab-btn" data-period="weekly">Weekly</button>
+                    <button class="tab-btn" data-period="monthly">Monthly</button>
+                    <button class="tab-btn" data-period="yearly">Yearly</button>
+                </div>
             </div>
-            <div id="activityList" class="activity-list">
-                <!-- Activity items will be added here -->
+            <div class="profit-stats">
+                <div class="profit-card">
+                    <div class="profit-label">Total Sales</div>
+                    <div class="profit-value" id="totalSales">₹0.00</div>
+                </div>
+                <div class="profit-card">
+                    <div class="profit-label">Total Cost</div>
+                    <div class="profit-value" id="totalCost">₹0.00</div>
+                </div>
+                <div class="profit-card">
+                    <div class="profit-label">Total Profit</div>
+                    <div class="profit-value" id="totalProfit">₹0.00</div>
+                </div>
             </div>
         </div>
     </div>

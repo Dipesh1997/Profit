@@ -55,6 +55,31 @@
         <i class="fas fa-plus"></i>
     </button>
 
+    <!-- Return floating button -->
+    <button id="returnButton" class="fab fab-return">
+        <i class="fas fa-minus"></i>
+    </button>
+
+    <style>
+        /* ... existing styles ... */
+
+        /* Return FAB Styles */
+        .fab-return {
+            left: 20px;
+            right: auto;
+            background-color: #dc3545; /* Red color for return */
+        }
+
+        .fab-return:hover {
+            background-color: #c82333;
+        }
+
+        /* Ensure main FAB and return FAB don't overlap */
+        .fab {
+            right: 20px; /* Explicitly set right position for main FAB */
+        }
+    </style>
+
     <script src="../js/inventory.js"></script>
     <script src="../js/nav.js"></script>
 </body>
