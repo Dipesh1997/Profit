@@ -3,14 +3,28 @@ class DashboardManager {
         this.totalItemsElement = document.getElementById('totalItems');
         this.totalCustomersElement = document.getElementById('totalCustomers');
         this.totalInvoicesElement = document.getElementById('totalInvoices');
-        this.activityListElement = document.getElementById('activityList');
 
         this.initialize();
+        this.setupEventListeners();
     }
 
     initialize() {
         this.updateStats();
-        this.loadRecentActivity();
+    }
+
+    setupEventListeners() {
+        // Add click handlers for stat cards
+        document.querySelector('.stat-card[data-type="customers"]').addEventListener('click', () => {
+            window.location.href = 'customers.html';
+        });
+
+        document.querySelector('.stat-card[data-type="inventory"]').addEventListener('click', () => {
+            window.location.href = 'inventory.html';
+        });
+
+        document.querySelector('.stat-card[data-type="invoices"]').addEventListener('click', () => {
+            window.location.href = 'invoices.html';
+        });
     }
 
     updateStats() {
@@ -23,57 +37,6 @@ class DashboardManager {
         this.totalItemsElement.textContent = inventory.length;
         this.totalCustomersElement.textContent = customers.length;
         this.totalInvoicesElement.textContent = invoices.length;
-    }
-
-    loadRecentActivity() {
-        // Get recent activities from localStorage
-        const activities = JSON.parse(localStorage.getItem('activities')) || [];
-        
-        // Display last 10 activities
-        const recentActivities = activities.slice(-10).reverse();
-        
-        this.activityListElement.innerHTML = recentActivities.map(activity => `
-            <div class="activity-item">
-                <div class="activity-icon">
-                    <i class="fas ${this.getActivityIcon(activity.type)}"></i>
-                </div>
-                <div class="activity-details">
-                    <div class="activity-message">${activity.message}</div>
-                    <div class="activity-time">${this.formatTime(activity.timestamp)}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    getActivityIcon(type) {
-        const icons = {
-            'inventory': 'fa-box',
-            'customer': 'fa-user',
-            'invoice': 'fa-file-invoice',
-            'settings': 'fa-cog'
-        };
-        return icons[type] || 'fa-info-circle';
-    }
-
-    formatTime(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-        if (diffInHours < 24) {
-            if (diffInHours < 1) {
-                const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-                return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-            }
-            return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
-        }
-
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-        });
     }
 }
 

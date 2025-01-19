@@ -6,6 +6,7 @@ class InventoryManager {
         this.addModal = document.getElementById('addItemModal');
         this.addForm = document.getElementById('addItemForm');
         this.addButton = document.getElementById('addButton');
+        this.returnButton = document.getElementById('returnButton');
 
         // Load inventory from localStorage
         this.inventory = JSON.parse(localStorage.getItem('inventory')) || [];
@@ -48,6 +49,11 @@ class InventoryManager {
 
         // Inventory list click events
         this.inventoryList.addEventListener('click', this.handleItemClick);
+
+        // Return button click
+        this.returnButton.addEventListener('click', () => {
+            window.location.href = 'invoices.html?action=return';
+        });
     }
 
     handleAddItem(e) {
@@ -250,3 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+function checkInventoryAvailability(itemId, requestedQuantity) {
+    const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+    const item = inventory.find(item => item.id === itemId);
+    
+    if (!item) {
+        return false;
+    }
+    
+    return item.quantity >= requestedQuantity;
+}
+
+// Export for use in invoices.js
+window.checkInventoryAvailability = checkInventoryAvailability;

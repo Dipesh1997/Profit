@@ -20,6 +20,10 @@ class InvoiceManager {
         this.submitButton = document.getElementById('submitButton');
         this.editInvoiceId = document.getElementById('editInvoiceId');
 
+        // Add new properties for return handling
+        this.returnModal = document.getElementById('returnItemModal');
+        this.returnForm = document.getElementById('returnItemForm');
+
         // Load data from localStorage
         this.invoices = JSON.parse(localStorage.getItem('invoices')) || [];
         this.customers = JSON.parse(localStorage.getItem('customers')) || [];
@@ -32,11 +36,14 @@ class InvoiceManager {
         this.handleAddItem = this.handleAddItem.bind(this);
         this.updateTotals = this.updateTotals.bind(this);
         this.handleEditInvoice = this.handleEditInvoice.bind(this);
+        this.handleReturn = this.handleReturn.bind(this);
+        this.processReturn = this.processReturn.bind(this);
 
         // Initialize
         this.setupEventListeners();
         this.loadCustomers();
         this.renderInvoices();
+        this.checkForReturnAction();
     }
 
     setupEventListeners() {
@@ -87,6 +94,17 @@ class InvoiceManager {
                 this.handleEditInvoice(id);
             } else if (e.target.closest('.delete-btn')) {
                 this.handleDeleteInvoice(id);
+            } else if (e.target.closest('.return-btn')) {
+                this.handleReturn(id);
+            }
+        });
+
+        // Add return button listener
+        this.invoicesList.addEventListener('click', (e) => {
+            if (e.target.closest('.return-btn')) {
+                const invoiceElement = e.target.closest('.invoice-item');
+                const invoiceId = Number(invoiceElement.dataset.id);
+                this.handleReturn(invoiceId);
             }
         });
     }
@@ -215,7 +233,19 @@ class InvoiceManager {
         if (selectedOption.value) {
             const price = parseFloat(sellingPrice.value) || 0;
             const qty = parseInt(quantity.value) || 0;
-            totalDiv.textContent = `₹${(price * qty).toFixed(2)}`;
+            const item = this.inventory.find(i => i.id === Number(selectedOption.value));
+            const costPrice = item ? item.costPrice : 0;
+            
+            const total = price * qty;
+            const tax = total * (parseFloat(this.taxRate.value) / 100);
+            const discount = parseFloat(this.discountAmount.value) || 0;
+            const discountedTotal = total - discount;
+            const profit = discountedTotal - costPrice * qty;
+            
+            totalDiv.textContent = `₹${total.toFixed(2)}`;
+            this.invoiceTax.textContent = `₹${tax.toFixed(2)}`;
+            this.invoiceDiscount.textContent = `₹${discount.toFixed(2)}`;
+            this.invoiceTotal.textContent = `₹${discountedTotal.toFixed(2)}`;
         } else {
             totalDiv.textContent = '₹0.00';
         }
@@ -271,7 +301,23 @@ class InvoiceManager {
         let isValid = true;
         let totalCostPrice = 0;
 
-        this.invoiceItems.querySelectorAll('.invoice-item-row').forEach(row => {
+        // First validate inventory availability
+        const itemRows = this.invoiceItems.querySelectorAll('.invoice-item-row');
+        for (const row of itemRows) {
+            const select = row.querySelector('.item-select');
+            const quantity = row.querySelector('.item-quantity');
+            const itemId = Number(select.value);
+            const qty = parseInt(quantity.value);
+
+            const inventoryItem = this.inventory.find(i => i.id === itemId);
+            if (!inventoryItem || inventoryItem.quantity < qty) {
+                alert(`Insufficient inventory for item: ${inventoryItem?.name || 'Unknown item'}`);
+                return;
+            }
+        }
+
+        // Process items and reduce inventory
+        itemRows.forEach(row => {
             const select = row.querySelector('.item-select');
             const quantity = row.querySelector('.item-quantity');
             const sellingPrice = row.querySelector('.item-selling-price');
@@ -281,14 +327,17 @@ class InvoiceManager {
                 return;
             }
 
-            const item = this.inventory.find(i => i.id === Number(select.value));
-            const price = parseFloat(sellingPrice.value);
+            const itemId = Number(select.value);
             const qty = parseInt(quantity.value);
+            const price = parseFloat(sellingPrice.value);
+            const item = this.inventory.find(i => i.id === itemId);
             
+            // Reduce inventory quantity
+            item.quantity -= qty;
             totalCostPrice += item.costPrice * qty;
             
             items.push({
-                id: item.id,
+                id: itemId,
                 name: item.name,
                 code: item.code,
                 price: price,
@@ -303,16 +352,18 @@ class InvoiceManager {
             return;
         }
 
+        // Save updated inventory
+        localStorage.setItem('inventory', JSON.stringify(this.inventory));
+
+        // Rest of the invoice creation logic...
         const subtotal = items.reduce((sum, item) => sum + item.total, 0);
         const taxRate = parseFloat(this.taxRate.value) || 0;
         const discountAmount = parseFloat(this.discountAmount.value) || 0;
         
-        // Calculate tax after applying discount
         const discountedSubtotal = subtotal - discountAmount;
         const tax = discountedSubtotal * (taxRate / 100);
         const total = discountedSubtotal + tax;
         
-        // Calculate profit after discount
         const profit = total - totalCostPrice;
 
         const invoiceData = {
@@ -411,6 +462,9 @@ class InvoiceManager {
                         <div class="invoice-date">${new Date(invoice.date).toLocaleDateString()}</div>
                     </div>
                     <div class="invoice-actions">
+                        <button class="action-btn return-btn" title="Return Items">
+                            <i class="fas fa-undo"></i>
+                        </button>
                         <button class="action-btn edit-btn">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -453,6 +507,176 @@ class InvoiceManager {
             </div>
         `).join('');
     }
+
+    handleReturn(invoiceId) {
+        const invoice = this.invoices.find(inv => inv.id === invoiceId);
+        if (!invoice) return;
+
+        // Show return modal
+        this.returnModal.style.display = 'block';
+        this.returnModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Return Items from Invoice #${invoiceId}</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <form id="returnItemForm">
+                    <div class="return-items">
+                        ${invoice.items.map(item => `
+                            <div class="return-item">
+                                <span>${item.name}</span>
+                                <div class="return-quantity">
+                                    <label>Quantity to Return:</label>
+                                    <input type="number" 
+                                           name="return-${item.id}" 
+                                           min="0" 
+                                           max="${item.quantity}" 
+                                           value="0">
+                                    <span>(Max: ${item.quantity})</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Process Return</button>
+                        <button type="button" class="btn-secondary cancel-return">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        // Setup event listeners for the return modal
+        const returnForm = this.returnModal.querySelector('#returnItemForm');
+        returnForm.addEventListener('submit', (e) => this.processReturn(e, invoice));
+        
+        this.returnModal.querySelector('.close-modal').addEventListener('click', () => {
+            this.returnModal.style.display = 'none';
+        });
+        
+        this.returnModal.querySelector('.cancel-return').addEventListener('click', () => {
+            this.returnModal.style.display = 'none';
+        });
+    }
+
+    processReturn(e, invoice) {
+        e.preventDefault();
+        
+        const returnedItems = [];
+        let totalReturnAmount = 0;
+        let totalReturnProfit = 0;
+
+        // Process each returned item
+        invoice.items.forEach(item => {
+            const returnInput = e.target.querySelector(`[name="return-${item.id}"]`);
+            const returnQuantity = parseInt(returnInput.value) || 0;
+            
+            if (returnQuantity > 0) {
+                // Calculate return amounts
+                const returnAmount = returnQuantity * item.price;
+                const returnCost = returnQuantity * item.costPrice;
+                const returnProfit = returnAmount - returnCost;
+
+                // Update inventory quantity
+                const inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+                const inventoryItem = inventory.find(i => i.id === item.id);
+                if (inventoryItem) {
+                    // Increase inventory quantity
+                    inventoryItem.quantity += returnQuantity;
+                    // Update the item quantity in the invoice
+                    item.quantity -= returnQuantity;
+                    // Save updated inventory
+                    localStorage.setItem('inventory', JSON.stringify(inventory));
+                    
+                    // Update the class inventory property
+                    const classInventoryItem = this.inventory.find(i => i.id === item.id);
+                    if (classInventoryItem) {
+                        classInventoryItem.quantity = inventoryItem.quantity;
+                    }
+                }
+
+                returnedItems.push({
+                    id: item.id,
+                    name: item.name,
+                    quantity: returnQuantity,
+                    price: item.price,
+                    total: returnAmount
+                });
+
+                totalReturnAmount += returnAmount;
+                totalReturnProfit += returnProfit;
+            }
+        });
+
+        if (returnedItems.length === 0) {
+            alert('Please select items to return');
+            return;
+        }
+
+        // Remove items with zero quantity from invoice
+        invoice.items = invoice.items.filter(item => item.quantity > 0);
+
+        // Create return record
+        const returnRecord = {
+            id: Date.now(),
+            invoiceId: invoice.id,
+            customerName: invoice.customerName,
+            customerId: invoice.customerId,
+            items: returnedItems,
+            totalAmount: totalReturnAmount,
+            returnDate: new Date().toISOString(),
+            type: 'return'
+        };
+
+        // Update invoice profits and totals
+        invoice.profit -= totalReturnProfit;
+        invoice.total -= totalReturnAmount;
+        invoice.subtotal -= totalReturnAmount;
+        
+        // Recalculate tax and total after return
+        const discountedSubtotal = invoice.subtotal - invoice.discountAmount;
+        invoice.tax = discountedSubtotal * (invoice.taxRate / 100);
+        invoice.total = discountedSubtotal + invoice.tax;
+
+        // Save returns to localStorage
+        const returns = JSON.parse(localStorage.getItem('returns')) || [];
+        returns.push(returnRecord);
+        localStorage.setItem('returns', JSON.stringify(returns));
+
+        // Save updated invoices
+        this.saveInvoices();
+
+        // Add activity
+        this.addActivity('return', `Processed return for ${invoice.customerName} - Amount: ₹${totalReturnAmount.toFixed(2)}`);
+
+        // Close modal and refresh display
+        this.returnModal.style.display = 'none';
+        this.renderInvoices();
+
+        // Refresh the inventory display if we're on the inventory page
+        const inventoryManager = window.inventoryManager;
+        if (inventoryManager && typeof inventoryManager.renderInventory === 'function') {
+            inventoryManager.renderInventory();
+        }
+
+        alert('Return processed successfully');
+    }
+
+    checkForReturnAction() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'return') {
+            // Focus on the search box
+            this.invoiceSearch.focus();
+            
+            // Show a helpful message
+            const message = document.createElement('div');
+            message.className = 'alert alert-info';
+            message.textContent = 'Select an invoice and click the return button (↺) to process a return';
+            this.invoicesList.parentNode.insertBefore(message, this.invoicesList);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => message.remove(), 5000);
+        }
+    }
 }
 
 // Initialize the invoice manager when the DOM is loaded
@@ -468,3 +692,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+function validateInvoice() {
+    const items = document.querySelectorAll('.invoice-item');
+    let isValid = true;
+    
+    items.forEach(item => {
+        const itemId = item.querySelector('[name="itemId"]').value;
+        const quantity = parseInt(item.querySelector('[name="quantity"]').value);
+        
+        if (!checkInventoryAvailability(itemId, quantity)) {
+            alert(`Insufficient inventory for item ID: ${itemId}`);
+            isValid = false;
+        }
+    });
+    
+    return isValid;
+}
+
+function createInvoice() {
+    if (!validateInvoice()) {
+        return;
+    }
+    
+    const items = document.querySelectorAll('.invoice-item');
+    const invoiceData = {
+        customerName: document.getElementById('customerName').value,
+        date: document.getElementById('invoiceDate').value,
+        items: [],
+        total: calculateTotal()
+    };
+
+    items.forEach(item => {
+        const itemData = {
+            id: item.querySelector('[name="itemId"]').value,
+            name: item.querySelector('[name="itemName"]').value,
+            quantity: parseInt(item.querySelector('[name="quantity"]').value),
+            price: parseFloat(item.querySelector('[name="price"]').value)
+        };
+        invoiceData.items.push(itemData);
+        
+        // Reduce inventory after adding item to invoice
+        updateInventoryQuantity(itemData.id, itemData.quantity);
+    });
+
+    // Save invoice to localStorage
+    const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+    invoices.push(invoiceData);
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+
+    alert('Invoice created successfully!');
+    window.location.href = 'invoices.html';
+}
+
+function updateInventoryQuantity(itemId, soldQuantity) {
+    const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+    const itemIndex = inventory.findIndex(item => item.id === itemId);
+    
+    if (itemIndex !== -1) {
+        inventory[itemIndex].quantity -= soldQuantity;
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+    }
+}
